@@ -17,10 +17,18 @@ export class EmbeddingService {
     }
 
     try {
-      const response = await this.ai.models.embedContent({
-        model: 'text-embedding-004',
-        contents: text,
-      });
+      let response;
+      try {
+        response = await this.ai.models.embedContent({
+          model: 'gemini-embedding-001',
+          contents: text,
+        });
+      } catch (err) {
+        response = await this.ai.models.embedContent({
+          model: 'text-embedding-004',
+          contents: text,
+        });
+      }
 
       if (!response.embeddings || response.embeddings.length === 0 || !response.embeddings[0].values) {
         throw new Error('Failed to generate embedding: Empty response');

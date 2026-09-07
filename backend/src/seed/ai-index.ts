@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import { env } from "../config/env";
 import { Report, ReportStatus } from "../models/Report";
+import { User } from "../models/User";
+import { Project } from "../models/Project";
 import { embeddingService } from "../modules/ai/rag/EmbeddingService";
 import { vectorDocumentRepository } from "../modules/ai/rag/VectorDocumentRepository";
 
@@ -19,11 +21,13 @@ async function runIndexer() {
     process.exit(1);
   }
 
-  // Oonly index SUBMITTED and APPROVED reports.
+  const _registeredModels = [User.modelName, Project.modelName];
   const eligibleStatuses = [ReportStatus.SUBMITTED, ReportStatus.APPROVED];
   const reports = await Report.find({
     currentStatus: { $in: eligibleStatuses },
-  }).populate("owner");
+  })
+    .populate("owner")
+    .populate("project");
 
   console.log(`Found ${reports.length} eligible reports to index.`);
 
