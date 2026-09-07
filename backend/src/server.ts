@@ -1,10 +1,15 @@
 import app from './app';
-import dotenv from 'dotenv';
+import { connectDB } from './config/db';
+import { env } from './config/env';
 
-dotenv.config();
+const startServer = async () => {
+  await connectDB();
+  
+  const PORT = env.PORT || 5000;
+  
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT} in ${env.NODE_ENV} mode`);
+  });
+};
 
-const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+startServer();
