@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { ShieldAlert, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 import { ReportStatus } from '@/types';
+import { AIDashboardWidget } from '@/features/ai/components/AIDashboardWidget';
 
 const STATUS_COLORS: Record<string, string> = {
   [ReportStatus.DRAFT]: '#94a3b8',
@@ -33,6 +34,10 @@ export const ManagerDashboardComponent: React.FC = () => {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Manager Overview</h1>
         <p className="text-muted-foreground mt-1">Team analytics and report statuses.</p>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-4 lg:grid-cols-7">
+        <AIDashboardWidget />
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">
