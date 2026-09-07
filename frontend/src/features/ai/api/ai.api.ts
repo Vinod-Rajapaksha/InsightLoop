@@ -12,7 +12,7 @@ import {
 export const aiApi = {
   getStatus: async (): Promise<AIStatus> => {
     const response = await apiClient.get<{ success: boolean; data: AIStatus }>(
-      "/api/ai/status",
+      "/ai/status",
     );
     return response.data.data;
   },
@@ -21,7 +21,7 @@ export const aiApi = {
     const response = await apiClient.post<{
       success: boolean;
       data: AIResponse;
-    }>("/api/ai/ask", data);
+    }>("/ai/ask", data);
     return response.data.data;
   },
 
@@ -29,7 +29,7 @@ export const aiApi = {
     const response = await apiClient.post<{
       success: boolean;
       data: AIResponse;
-    }>("/api/ai/weekly-summary", data);
+    }>("/ai/weekly-summary", data);
     return response.data.data;
   },
 
@@ -39,7 +39,7 @@ export const aiApi = {
     const response = await apiClient.post<{
       success: boolean;
       data: AIResponse;
-    }>("/api/ai/project-insights", data);
+    }>("/ai/project-insights", data);
     return response.data.data;
   },
 
@@ -47,7 +47,7 @@ export const aiApi = {
     const response = await apiClient.post<{
       success: boolean;
       data: AIResponse;
-    }>("/api/ai/risk-analysis", data);
+    }>("/ai/risk-analysis", data);
     return response.data.data;
   },
 
@@ -55,7 +55,7 @@ export const aiApi = {
     const response = await apiClient.post<{
       success: boolean;
       data: AIResponse;
-    }>("/api/ai/compare-weeks", data);
+    }>("/ai/compare-weeks", data);
     return response.data.data;
   },
 };

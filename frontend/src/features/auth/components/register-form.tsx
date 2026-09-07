@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { useNavigate } from 'react-router-dom';
 import { authApi } from '../api/auth.api';
 import { toast } from 'sonner';
+import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -30,8 +31,14 @@ const registerSchema = z.object({
 
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
-export const RegisterForm: React.FC = () => {
+interface RegisterFormProps {
+  onSuccess?: () => void;
+}
+
+export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
 
   const form = useForm<RegisterFormValues>({
@@ -45,6 +52,28 @@ export const RegisterForm: React.FC = () => {
     },
   });
 
+  const watchPassword = form.watch('password') || '';
+
+  const calculatePasswordStrength = (pass: string) => {
+    let score = 0;
+    if (!pass) return score;
+    if (pass.length >= 6) score += 1;
+    if (pass.length >= 10) score += 1;
+    if (/[A-Z]/.test(pass)) score += 1;
+    if (/[0-9]/.test(pass) || /[^A-Za-z0-9]/.test(pass)) score += 1;
+    return score;
+  };
+
+  const strengthScore = calculatePasswordStrength(watchPassword);
+
+  const getStrengthColor = (index: number) => {
+    if (index >= strengthScore) return 'bg-slate-200';
+    if (strengthScore <= 1) return 'bg-red-500';
+    if (strengthScore === 2) return 'bg-amber-500';
+    if (strengthScore === 3) return 'bg-blue-500';
+    return 'bg-emerald-500';
+  };
+
   const onSubmit = async (data: RegisterFormValues) => {
     setIsLoading(true);
     try {
@@ -57,7 +86,11 @@ export const RegisterForm: React.FC = () => {
       });
       
       toast.success('Registration successful. Please log in.');
-      navigate('/login');
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        navigate('/login');
+      }
     } catch (error: any) {
       if (error.response?.status === 400) {
         toast.error(error.response.data?.message || 'Registration failed due to invalid data.');
@@ -80,7 +113,10 @@ export const RegisterForm: React.FC = () => {
               <FormItem>
                 <FormLabel>First Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="John" disabled={isLoading} {...field} />
+                  <div className="relative">
+                    <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 z-10 pointer-events-none" />
+                    <Input placeholder="John" disabled={isLoading} className="pl-10" {...field} />
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -93,7 +129,10 @@ export const RegisterForm: React.FC = () => {
               <FormItem>
                 <FormLabel>Last Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="Doe" disabled={isLoading} {...field} />
+                  <div className="relative">
+                    <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 z-10 pointer-events-none" />
+                    <Input placeholder="Doe" disabled={isLoading} className="pl-10" {...field} />
+                  </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -107,7 +146,10 @@ export const RegisterForm: React.FC = () => {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder="john.doe@example.com" type="email" disabled={isLoading} {...field} />
+                <div className="relative">
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 z-10 pointer-events-none" />
+                  <Input placeholder="john.doe@example.com" type="email" disabled={isLoading} className="pl-10" {...field} />
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -120,7 +162,38 @@ export const RegisterForm: React.FC = () => {
             <FormItem>
               <FormLabel>Password</FormLabel>
               <FormControl>
-                <Input type="password" disabled={isLoading} {...field} />
+                <div className="space-y-2">
+                  <div className="relative">
+                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 z-10 pointer-events-none" />
+                    <Input 
+                      placeholder="********"
+                      type={showPassword ? 'text' : 'password'} 
+                      disabled={isLoading} 
+                      className="pl-10 pr-10" 
+                      {...field} 
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-800 focus:outline-none transition-colors z-10"
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                  {watchPassword.length > 0 && (
+                    <div className="space-y-1 pt-1">
+                      <div className="flex gap-1.5 h-1.5 w-full">
+                        <div className={`flex-1 rounded-full transition-all duration-300 ${getStrengthColor(0)}`} />
+                        <div className={`flex-1 rounded-full transition-all duration-300 ${getStrengthColor(1)}`} />
+                        <div className={`flex-1 rounded-full transition-all duration-300 ${getStrengthColor(2)}`} />
+                        <div className={`flex-1 rounded-full transition-all duration-300 ${getStrengthColor(3)}`} />
+                      </div>
+                      <p className="text-[11px] text-slate-500 font-medium">
+                        Strength: {strengthScore === 0 ? 'Weak' : strengthScore === 1 ? 'Fair' : strengthScore === 2 ? 'Good' : strengthScore === 3 ? 'Strong' : 'Very Strong'}
+                      </p>
+                    </div>
+                  )}
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -133,13 +206,29 @@ export const RegisterForm: React.FC = () => {
             <FormItem>
               <FormLabel>Confirm Password</FormLabel>
               <FormControl>
-                <Input type="password" disabled={isLoading} {...field} />
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500 z-10 pointer-events-none" />
+                  <Input 
+                    placeholder="********"
+                    type={showConfirmPassword ? 'text' : 'password'} 
+                    disabled={isLoading} 
+                    className="pl-10 pr-10" 
+                    {...field} 
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-800 focus:outline-none transition-colors z-10"
+                  >
+                    {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full mt-6" disabled={isLoading}>
+        <Button type="submit" className="w-full mt-6 h-11 text-base shadow-lg shadow-indigo-500/25" disabled={isLoading}>
           {isLoading ? 'Creating account...' : 'Create account'}
         </Button>
       </form>

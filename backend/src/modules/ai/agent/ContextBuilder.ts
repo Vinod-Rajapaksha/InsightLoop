@@ -10,10 +10,10 @@ export class ContextBuilder {
     let contextText = "";
 
     try {
-      if (requestType === "weekly-summary" || requestType === "risk-analysis") {
+      if (requestType === "weekly-summary" || requestType === "risk-analysis" || requestType === "ask") {
         const summary = await tools.getTeamSummary({
-          weekStart: requestData.weekStart,
-          weekEnd: requestData.weekEnd,
+          weekStart: requestData?.weekStart,
+          weekEnd: requestData?.weekEnd,
         });
         contextText += `### Deterministic Team Summary\n${JSON.stringify(summary, null, 2)}\n\n`;
       }

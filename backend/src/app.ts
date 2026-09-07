@@ -5,6 +5,7 @@ import { env } from "./config/env";
 import { errorHandler } from "./middleware/error";
 
 import { authRoutes } from "./modules/auth/auth.routes";
+import { userRoutes } from "./modules/users/user.routes";
 import { projectRoutes } from "./modules/projects/project.routes";
 import { reportRoutes } from "./modules/reports/report.routes";
 import { dashboardRoutes } from "./modules/dashboard/dashboard.routes";
@@ -37,6 +38,7 @@ app.get("/api/health", (req, res) => {
 
 // API Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/manager/dashboard", dashboardRoutes);

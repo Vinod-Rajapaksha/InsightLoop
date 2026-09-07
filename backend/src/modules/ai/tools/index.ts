@@ -57,23 +57,55 @@ export class AIToolHandlers {
 
   async getTeamSummary(args: any) {
     this.enforceManager();
-    const { weekStart, weekEnd } = args;
+    const { weekStart, weekEnd } = args || {};
     
-    const start = new Date(weekStart);
-    const end = new Date(weekEnd);
+    const filter: any = {};
+    if (weekStart && weekEnd) {
+      const start = new Date(weekStart);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(weekEnd);
+      end.setHours(23, 59, 59, 999);
+      filter.createdAt = { $gte: start, $lte: end };
+    }
 
-    const reports = await Report.find({ weekStart: { $gte: start }, weekEnd: { $lte: end } }).populate('owner', 'firstName lastName');
+    const reports = await Report.find(filter).populate('owner', 'firstName lastName').populate('project', 'name');
     
     let totalPlanned = 0;
     let totalSpent = 0;
     let blockersCount = 0;
     let achievementsCount = 0;
+    const achievementsList: string[] = [];
+    const blockersList: string[] = [];
+    const projectMap: Record<string, { name: string; reportCount: number; blockers: string[]; achievements: string[]; totalSpentHours: number }> = {};
 
     reports.forEach(r => {
-      r.tasksCompleted.forEach(t => totalSpent += t.spentHours);
-      r.nextWeekTasks.forEach(t => totalPlanned += t.plannedHours);
-      blockersCount += r.blockers.length;
-      achievementsCount += r.achievements.length;
+      const projName = typeof r.project === 'object' && r.project ? (r.project as any).name : 'General Project';
+      if (!projectMap[projName]) {
+        projectMap[projName] = { name: projName, reportCount: 0, blockers: [], achievements: [], totalSpentHours: 0 };
+      }
+      projectMap[projName].reportCount++;
+
+      (r.tasksCompleted || []).forEach(t => {
+        const spent = t.spentHours || 0;
+        totalSpent += spent;
+        projectMap[projName].totalSpentHours += spent;
+      });
+      (r.nextWeekTasks || []).forEach(t => totalPlanned += (t.plannedHours || 0));
+      
+      (r.blockers || []).forEach(b => {
+        blockersCount++;
+        if (b.description) {
+          blockersList.push(`${projName}: ${b.description}`);
+          projectMap[projName].blockers.push(b.description);
+        }
+      });
+      (r.achievements || []).forEach(a => {
+        achievementsCount++;
+        if (a.description) {
+          achievementsList.push(`${projName}: ${a.description}`);
+          projectMap[projName].achievements.push(a.description);
+        }
+      });
     });
 
     return {
@@ -85,7 +117,10 @@ export class AIToolHandlers {
       totalSpentHours: totalSpent,
       totalPlannedHoursNextWeek: totalPlanned,
       totalBlockers: blockersCount,
-      totalAchievements: achievementsCount
+      totalAchievements: achievementsCount,
+      projectBreakdown: Object.values(projectMap),
+      keyAchievements: achievementsList.slice(0, 15),
+      keyBlockers: blockersList.slice(0, 15)
     };
   }
 

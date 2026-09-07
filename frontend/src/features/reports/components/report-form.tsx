@@ -17,7 +17,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Plus, Trash2, ArrowLeft, Save, Send } from 'lucide-react';
+import { Plus, Trash2, ArrowLeft, Save, Send, Calendar } from 'lucide-react';
 
 export const ReportForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -36,6 +36,7 @@ export const ReportForm: React.FC = () => {
   // Initialize form
   const form = useForm<any>({
     resolver: zodResolver(reportFormSchema),
+    mode: 'onChange',
     defaultValues: {
       weekStart: format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd'),
       weekEnd: format(endOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd'),
@@ -54,6 +55,9 @@ export const ReportForm: React.FC = () => {
       notes: '',
     },
   });
+
+  const watchedWeekStart = form.watch('weekStart');
+  const watchedWeekEnd = form.watch('weekEnd');
 
   // Populate form if editing
   useEffect(() => {
@@ -150,12 +154,6 @@ export const ReportForm: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-20">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-      </div>
-
       <Form {...form}>
         <form className="space-y-8" onSubmit={(e) => e.preventDefault()}>
           
@@ -168,35 +166,82 @@ export const ReportForm: React.FC = () => {
               <FormField control={form.control} name="weekStart" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Week Start Date</FormLabel>
-                  <FormControl><Input type="date" disabled={isReadOnly} {...field} /></FormControl>
+                  <FormControl>
+                    <div className="relative flex items-center">
+                      <Calendar className="absolute left-3.5 h-4 w-4 text-indigo-600 pointer-events-none z-10" />
+                      <Input 
+                        type="date" 
+                        max={watchedWeekEnd || undefined}
+                        disabled={isReadOnly} 
+                        className="pl-10 cursor-pointer font-medium border-slate-200/90 hover:border-indigo-300 focus:border-indigo-500 focus:ring-indigo-500/20 [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:cursor-pointer" 
+                        {...field} 
+                      />
+                    </div>
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
               <FormField control={form.control} name="weekEnd" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Week End Date</FormLabel>
-                  <FormControl><Input type="date" disabled={isReadOnly} {...field} /></FormControl>
+                  <FormControl>
+                    <div className="relative flex items-center">
+                      <Calendar className="absolute left-3.5 h-4 w-4 text-indigo-600 pointer-events-none z-10" />
+                      <Input 
+                        type="date" 
+                        min={watchedWeekStart || undefined}
+                        disabled={isReadOnly} 
+                        className="pl-10 cursor-pointer font-medium border-slate-200/90 hover:border-indigo-300 focus:border-indigo-500 focus:ring-indigo-500/20 [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:cursor-pointer" 
+                        {...field} 
+                      />
+                    </div>
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
-              <FormField control={form.control} name="project" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Project</FormLabel>
-                  <Select disabled={isReadOnly || projectsLoading} onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a project" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {projects?.map(p => (
-                        <SelectItem key={p._id} value={p._id}>{p.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )} />
+              <FormField control={form.control} name="project" render={({ field }) => {
+                const hasProjects = Array.isArray(projects) && projects.length > 0;
+                
+                return (
+                  <FormItem>
+                    <FormLabel>Project</FormLabel>
+                    <Select 
+                      disabled={isReadOnly || projectsLoading || !hasProjects} 
+                      onValueChange={field.onChange} 
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="border-slate-200/90 focus:border-indigo-500 focus:ring-indigo-500/20 font-medium">
+                          <SelectValue placeholder={
+                            projectsLoading 
+                              ? "Loading projects..." 
+                              : hasProjects 
+                                ? "Select a project" 
+                                : "No active projects available"
+                          } />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {projectsLoading ? (
+                          <SelectItem value="_loading" disabled>Loading projects...</SelectItem>
+                        ) : hasProjects ? (
+                          projects.map(p => (
+                            <SelectItem key={p._id} value={p._id}>{p.name}</SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="_empty" disabled>No active projects found</SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                    {!projectsLoading && !hasProjects && (
+                      <p className="text-[12px] text-amber-600 font-medium mt-1">
+                        ⚠️ Contact your manager or admin to assign you to a project.
+                      </p>
+                    )}
+                    <FormMessage />
+                  </FormItem>
+                );
+              }} />
             </CardContent>
           </Card>
 

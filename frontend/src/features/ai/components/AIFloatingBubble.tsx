@@ -3,16 +3,21 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Bot, X, Maximize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AIChat } from './AIChat';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/app/providers/auth-provider';
 import { Role } from '@/types';
 
 export const AIFloatingBubble: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { role } = useAuth();
 
   if (role !== Role.MANAGER && role !== Role.ADMIN) {
+    return null;
+  }
+
+  if (location.pathname === '/ai') {
     return null;
   }
 
