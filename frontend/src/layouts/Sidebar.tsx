@@ -10,7 +10,8 @@ import {
   Users, 
   UserCircle,
   Menu,
-  X
+  X,
+  Bot
 } from 'lucide-react';
 import { cn } from '@/utils';
 import { Button } from '@/components/ui/button';
@@ -96,6 +97,7 @@ function getNavItems(role: Role | null) {
       { label: 'Team Reports', path: '/manager/reports', icon: Files },
       { label: 'My Reports', path: '/member/reports', icon: FileText },
       { label: 'Projects', path: '/manager/projects', icon: FolderKanban },
+      { label: 'AI Assistant', path: '/ai', icon: Bot },
       { label: 'Profile', path: '/profile', icon: UserCircle }
     );
   } else if (role === Role.ADMIN) {
@@ -104,6 +106,7 @@ function getNavItems(role: Role | null) {
       { label: 'Team Reports', path: '/manager/reports', icon: Files },
       { label: 'Projects', path: '/manager/projects', icon: FolderKanban },
       { label: 'User Management', path: '/admin/users', icon: Users },
+      { label: 'AI Assistant', path: '/ai', icon: Bot },
       { label: 'Profile', path: '/profile', icon: UserCircle }
     );
   }

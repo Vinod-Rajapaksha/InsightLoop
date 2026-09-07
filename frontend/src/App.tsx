@@ -28,6 +28,7 @@ import { ManagerProjects } from './pages/manager/project-management-page';
 
 // Feature Pages (Admin)
 import { UserManagementPage } from './pages/admin/user-management-page';
+import { AIAssistantPage } from './features/ai/pages/ai-assistant-page';
 
 // Feature Pages (Shared)
 import { ReportDetail } from './pages/member/report-detail-page';
@@ -63,6 +64,7 @@ export const App = () => {
                 <Route path="/manager/reports" element={<ManagerReports />} />
                 <Route path="/manager/reports/:id/review" element={<ManagerReportReview />} />
                 <Route path="/manager/projects" element={<ManagerProjects />} />
+                <Route path="/ai" element={<AIAssistantPage />} />
               </Route>
 
               {/* ADMIN Only Routes */}

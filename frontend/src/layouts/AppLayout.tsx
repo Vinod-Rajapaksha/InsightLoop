@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { AIFloatingBubble } from '@/features/ai/components/AIFloatingBubble';
 
 export const AppLayout: React.FC = () => {
   return (
@@ -16,6 +17,7 @@ export const AppLayout: React.FC = () => {
           </main>
         </ScrollArea>
       </div>
+      <AIFloatingBubble />
     </div>
   );
 };
