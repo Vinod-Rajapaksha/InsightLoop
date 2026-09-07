@@ -8,6 +8,7 @@ import { authRoutes } from "./modules/auth/auth.routes";
 import { projectRoutes } from "./modules/projects/project.routes";
 import { reportRoutes } from "./modules/reports/report.routes";
 import { dashboardRoutes } from "./modules/dashboard/dashboard.routes";
+import aiRoutes from "./modules/ai/ai.routes";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./config/swagger";
 
@@ -39,6 +40,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/manager/dashboard", dashboardRoutes);
+app.use("/api/ai", aiRoutes);
 
 // Global Error Handler
 app.use(errorHandler);
