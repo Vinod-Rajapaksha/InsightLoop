@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { useProjects, useCreateProject, useUpdateProject, useDeleteProject } from '@/features/projects/hooks/use-projects';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ConfirmAlert } from '@/components/ui/confirm-alert';
 import { PlusCircle, Search, Edit2, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDate } from '@/utils';
@@ -20,6 +21,7 @@ export const ProjectList: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
   const [formData, setFormData] = useState({ name: '', description: '', status: 'ACTIVE' });
 
@@ -30,7 +32,8 @@ export const ProjectList: React.FC = () => {
   const handleOpenDialog = (project?: Project) => {
     if (project) {
       setEditingProject(project);
-      setFormData({ name: project.name, description: project.description, status: project.status });
+      const currentStatus = (project as any).status || ((project as any).isActive !== false ? 'ACTIVE' : 'INACTIVE');
+      setFormData({ name: project.name, description: project.description || '', status: currentStatus });
     } else {
       setEditingProject(null);
       setFormData({ name: '', description: '', status: 'ACTIVE' });
@@ -57,14 +60,19 @@ export const ProjectList: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: string, name: string) => {
-    if (confirm(`Are you sure you want to delete the project "${name}"? This action cannot be undone.`)) {
-      try {
-        await deleteMutation.mutateAsync(id);
-        toast.success('Project deleted successfully');
-      } catch (error) {
-        toast.error('Failed to delete project. It might be linked to existing reports.');
-      }
+  const handleDelete = (id: string, name: string) => {
+    setDeleteTarget({ id, name });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      await deleteMutation.mutateAsync(deleteTarget.id);
+      toast.success('Project deleted successfully');
+    } catch (error) {
+      toast.error('Failed to delete project. It might be linked to existing reports.');
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
@@ -120,9 +128,39 @@ export const ProjectList: React.FC = () => {
                       <TableCell className="font-medium">{project.name}</TableCell>
                       <TableCell className="max-w-xs truncate">{project.description}</TableCell>
                       <TableCell>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${project.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-slate-100 text-slate-800'}`}>
-                          {project.status}
-                        </span>
+                        {(() => {
+                          const statusStr = (project.status || ((project as any).isActive !== false ? 'ACTIVE' : 'INACTIVE')).toUpperCase();
+                          if (statusStr === 'ACTIVE') {
+                            return (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80 shadow-2xs">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                Active
+                              </span>
+                            );
+                          }
+                          if (statusStr === 'COMPLETED') {
+                            return (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200/80 shadow-2xs">
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                                Completed
+                              </span>
+                            );
+                          }
+                          if (statusStr === 'ON_HOLD') {
+                            return (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200/80 shadow-2xs">
+                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                                On Hold
+                              </span>
+                            );
+                          }
+                          return (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200 shadow-2xs">
+                              <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                              {statusStr}
+                            </span>
+                          );
+                        })()}
                       </TableCell>
                       <TableCell>{formatDate(project.createdAt)}</TableCell>
                       <TableCell className="text-right">
@@ -179,6 +217,17 @@ export const ProjectList: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ConfirmAlert
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        title="Delete Project"
+        description={`Are you sure you want to delete "${deleteTarget?.name}"? This action cannot be undone.`}
+        confirmText="Delete"
+        isDestructive
+        isLoading={deleteMutation.isPending}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 };

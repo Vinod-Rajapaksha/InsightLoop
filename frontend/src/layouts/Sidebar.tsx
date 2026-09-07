@@ -187,14 +187,12 @@ function getNavItems(role: Role | null) {
       { label: 'Dashboard', path: '/member/dashboard', icon: LayoutDashboard, end: true },
       { label: 'Create Weekly Report', path: '/member/reports/new', icon: FileText, end: true },
       { label: 'Report History', path: '/member/reports', icon: Files, end: true },
-      { label: 'Projects', path: '/member/projects', icon: FolderKanban, end: true },
       { label: 'My Profile', path: '/profile', icon: UserCircle, end: true }
     );
   } else if (role === Role.MANAGER) {
     items.push(
       { label: 'Dashboard', path: '/manager/dashboard', icon: LayoutDashboard, end: true },
       { label: 'Team Reports', path: '/manager/reports', icon: Files, end: true },
-      { label: 'My Reports', path: '/member/reports', icon: FileText, end: true },
       { label: 'Projects', path: '/manager/projects', icon: FolderKanban, end: true },
       { label: 'AI Assistant', path: '/ai', icon: Bot, end: true },
       { label: 'My Profile', path: '/profile', icon: UserCircle, end: true }

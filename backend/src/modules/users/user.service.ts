@@ -30,6 +30,37 @@ export class UserService {
     delete (userObj as any).passwordHash;
     return userObj as IUser;
   }
+
+  async getAllUsers(): Promise<IUser[]> {
+    const users = await User.find().select('-passwordHash');
+    return users as IUser[];
+  }
+
+  async updateRole(userId: string, role: string): Promise<IUser> {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    (user as any).role = role;
+    await user.save();
+    
+    const userObj = user.toObject();
+    delete (userObj as any).passwordHash;
+    return userObj as IUser;
+  }
+
+  async updateStatus(userId: string, isActive: boolean): Promise<IUser> {
+    const user = await User.findById(userId);
+    if (!user) {
+      throw new Error('User not found');
+    }
+    (user as any).isActive = isActive;
+    await user.save();
+    
+    const userObj = user.toObject();
+    delete (userObj as any).passwordHash;
+    return userObj as IUser;
+  }
 }
 
 export const userService = new UserService();

@@ -1,11 +1,68 @@
 import { ContextBuilder } from "./agent/ContextBuilder";
 import { AIInteraction } from "../../models/AIInteraction";
-import { AIResponseSchema } from "./ai.types";
-import { zodToJsonSchema } from "zod-to-json-schema";
+import { Type } from "@google/genai";
 
 function getGeminiService() {
   return require("./agent/GeminiService").geminiService;
 }
+
+const geminiSchema = {
+  type: Type.OBJECT,
+  properties: {
+    answer: { type: Type.STRING },
+    summary: { type: Type.STRING },
+    insights: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          title: { type: Type.STRING },
+          severity: { type: Type.STRING },
+          description: { type: Type.STRING },
+          evidence: { type: Type.ARRAY, items: { type: Type.STRING } },
+        },
+      },
+    },
+    recommendations: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          title: { type: Type.STRING },
+          reason: { type: Type.STRING },
+          priority: { type: Type.STRING },
+        },
+      },
+    },
+    risks: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          title: { type: Type.STRING },
+          severity: { type: Type.STRING },
+          confidence: { type: Type.NUMBER },
+          description: { type: Type.STRING },
+          evidence: { type: Type.ARRAY, items: { type: Type.STRING } },
+          recommendation: { type: Type.STRING },
+        },
+      },
+    },
+    sources: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          type: { type: Type.STRING },
+          id: { type: Type.STRING },
+          project: { type: Type.STRING },
+          week: { type: Type.STRING },
+          relevance: { type: Type.NUMBER },
+        },
+      },
+    },
+  },
+};
 
 export class AIService {
   async handleAIRequest(
@@ -31,17 +88,11 @@ export class AIService {
         requestData,
       );
 
-      const jsonSchema = zodToJsonSchema(AIResponseSchema as any, "AIResponse");
-      const schemaDef = (jsonSchema as any).definitions["AIResponse"];
-
-      // Remove any zod specific fields that Gemini SDK rejects
-      delete schemaDef.additionalProperties;
-
       responseData = await getGeminiService().generateResponse(
         user,
         prompt,
         contextText,
-        schemaDef as any,
+        geminiSchema,
       );
       success = true;
       return responseData;

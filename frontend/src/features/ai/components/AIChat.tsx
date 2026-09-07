@@ -49,11 +49,47 @@ export const AIChat: React.FC<AIChatProps> = ({ initialMessages = [] }) => {
     try {
       const response = await askMutation.mutateAsync({ question: text });
       
+      const parts: string[] = [];
+
+      if (response?.answer?.trim()) {
+        parts.push(response.answer.trim());
+      }
+      if (response?.summary?.trim() && response.summary.trim() !== response?.answer?.trim()) {
+        parts.push(response.summary.trim());
+      }
+      
+      if (Array.isArray((response as any)?.insights) && (response as any).insights.length > 0) {
+        const insightsText = (response as any).insights
+          .map((i: any) => `• **${i.title}**: ${i.description}`)
+          .join('\n');
+        parts.push(`### Insights\n${insightsText}`);
+      }
+
+      if (Array.isArray((response as any)?.recommendations) && (response as any).recommendations.length > 0) {
+        const recsText = (response as any).recommendations
+          .map((r: any) => `• **${r.title}**: ${r.reason}`)
+          .join('\n');
+        parts.push(`### Recommendations\n${recsText}`);
+      }
+
+      if (Array.isArray((response as any)?.risks) && (response as any).risks.length > 0) {
+        const risksText = (response as any).risks
+          .map((rk: any) => `• **${rk.title}** (${rk.severity || 'INFO'}): ${rk.description}`)
+          .join('\n');
+        parts.push(`### Identified Risks\n${risksText}`);
+      }
+
+      let responseText = parts.join('\n\n').trim();
+      
+      if (!responseText) {
+        responseText = "I'm here to help! Feel free to ask me about team progress, project status, report summaries, or active blockers.";
+      }
+
       const aiMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: response.answer,
-        sources: response.sources
+        content: responseText,
+        sources: response?.sources
       };
       setMessages(prev => [...prev, aiMsg]);
     } catch (error) {

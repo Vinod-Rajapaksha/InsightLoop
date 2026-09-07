@@ -1,5 +1,6 @@
 import React from 'react';
 import { useUsers, useUpdateUserRole, useUpdateUserStatus } from '../hooks/use-users';
+import { useAuth } from '@/app/providers/auth-provider';
 import { Role } from '@/enums';
 import {
   Table,
@@ -20,6 +21,10 @@ export const UserManagement: React.FC = () => {
   const { data: users, isLoading } = useUsers();
   const { mutate: updateRole } = useUpdateUserRole();
   const { mutate: updateStatus } = useUpdateUserStatus();
+  const { user: currentUser } = useAuth();
+
+  const isAdminAccount = (userRole: string) => userRole === Role.ADMIN;
+  const isSelf = (userId: string) => currentUser?._id === userId;
 
   const handleRoleChange = (userId: string, newRole: Role) => {
     updateRole({ userId, role: newRole });
@@ -71,34 +76,50 @@ export const UserManagement: React.FC = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  users.map((user) => (
+                  users.map((user) => {
+                    const isAdmin = isAdminAccount(user.role);
+                    const self = isSelf(user._id);
+                    const roleDisabled = isAdmin || self;
+                    const statusDisabled = isAdmin || self;
+
+                    return (
                     <TableRow key={user._id}>
                       <TableCell className="font-medium">
                         {user.firstName} {user.lastName}
+                        {self && <span className="ml-2 text-xs text-muted-foreground">(you)</span>}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {user.email}
                       </TableCell>
                       <TableCell>
-                        <Select 
-                          value={user.role} 
-                          onValueChange={(val) => handleRoleChange(user._id, val as Role)}
-                        >
-                          <SelectTrigger className="w-[140px] h-9">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value={Role.TEAM_MEMBER}>Member</SelectItem>
-                            <SelectItem value={Role.MANAGER}>Manager</SelectItem>
-                            <SelectItem value={Role.ADMIN}>Admin</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <div title={isAdmin ? "Admin role cannot be changed" : self ? "Cannot change your own role" : undefined}>
+                          <Select
+                            value={user.role}
+                            onValueChange={(val) => handleRoleChange(user._id, val as Role)}
+                            disabled={roleDisabled}
+                          >
+                            <SelectTrigger className="w-[140px] h-9">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value={Role.TEAM_MEMBER}>Member</SelectItem>
+                              <SelectItem value={Role.MANAGER}>Manager</SelectItem>
+                              {isAdmin && (
+                                <SelectItem value={Role.ADMIN}>Admin</SelectItem>
+                              )}
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-3">
-                          <Switch 
-                            checked={user.isActive} 
+                        <div
+                          className="flex items-center gap-3"
+                          title={isAdmin ? "Admin accounts cannot be deactivated" : self ? "Cannot deactivate your own account" : undefined}
+                        >
+                          <Switch
+                            checked={user.isActive}
                             onCheckedChange={(checked: boolean) => handleStatusChange(user._id, checked)}
+                            disabled={statusDisabled}
                           />
                           <Badge variant={user.isActive ? 'default' : 'secondary'}>
                             {user.isActive ? 'Active' : 'Inactive'}
@@ -109,7 +130,8 @@ export const UserManagement: React.FC = () => {
                         {formatDate(user.createdAt)}
                       </TableCell>
                     </TableRow>
-                  ))
+                    );
+                  })
                 )}
               </TableBody>
             </Table>

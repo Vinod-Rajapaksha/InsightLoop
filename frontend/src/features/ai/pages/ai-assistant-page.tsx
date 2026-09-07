@@ -43,45 +43,45 @@ export const AIAssistantPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto h-[calc(100vh-10rem)] flex flex-col">
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 shrink-0">
+    <div className="space-y-3 sm:space-y-6 max-w-6xl mx-auto h-[calc(100dvh-6rem)] sm:h-[calc(100vh-10rem)] min-h-[480px] flex flex-col">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-2 sm:gap-4 shrink-0">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
-            <Bot className="w-8 h-8 text-primary" />
+          <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-foreground flex items-center gap-2 sm:gap-3">
+            <Bot className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
             AI Assistant
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1 hidden sm:block">
             Grounded AI insights based on your team's weekly reports.
           </p>
         </div>
-        <div className="text-sm font-medium bg-primary/10 text-primary px-3 py-1.5 rounded-md flex items-center gap-2 border border-primary/20">
+        <div className="text-xs sm:text-sm font-medium bg-primary/10 text-primary px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-md flex items-center gap-2 border border-primary/20 self-start sm:self-auto">
           <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
           {status.model || 'Gemini'} • RAG {status.ragEnabled ? 'Active' : 'Inactive'}
         </div>
       </div>
 
       <Tabs defaultValue="chat" value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
-        <TabsList className="grid w-full grid-cols-4 lg:w-[600px] shrink-0 mb-6">
-          <TabsTrigger value="chat" className="flex items-center gap-2">
-            <MessageSquare className="w-4 h-4" />
-            <span className="hidden sm:inline">Chat</span>
+        <TabsList className="grid w-full grid-cols-4 lg:w-[600px] shrink-0 mb-3 sm:mb-6">
+          <TabsTrigger value="chat" className="flex items-center gap-1.5 py-1.5 text-xs sm:text-sm">
+            <MessageSquare className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span>Chat</span>
           </TabsTrigger>
-          <TabsTrigger value="summary" className="flex items-center gap-2">
-            <PieChart className="w-4 h-4" />
+          <TabsTrigger value="summary" className="flex items-center gap-1.5 py-1.5 text-xs sm:text-sm">
+            <PieChart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             <span className="hidden sm:inline">Summary</span>
           </TabsTrigger>
-          <TabsTrigger value="risks" className="flex items-center gap-2">
-            <ShieldAlert className="w-4 h-4" />
+          <TabsTrigger value="risks" className="flex items-center gap-1.5 py-1.5 text-xs sm:text-sm">
+            <ShieldAlert className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             <span className="hidden sm:inline">Risks</span>
           </TabsTrigger>
-          <TabsTrigger value="compare" className="flex items-center gap-2">
-            <GitCompare className="w-4 h-4" />
+          <TabsTrigger value="compare" className="flex items-center gap-1.5 py-1.5 text-xs sm:text-sm">
+            <GitCompare className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             <span className="hidden sm:inline">Compare</span>
           </TabsTrigger>
         </TabsList>
 
-        <div className="flex-1 overflow-y-auto bg-card rounded-xl border shadow-sm p-1">
-          <TabsContent value="chat" className="h-full m-0 data-[state=active]:flex flex-col">
+        <div className="flex-1 min-h-0 overflow-hidden bg-card rounded-xl border shadow-sm p-1 flex flex-col">
+          <TabsContent value="chat" className="h-full m-0 min-h-0 flex-1 flex flex-col data-[state=active]:flex">
             <AIChat />
           </TabsContent>
 

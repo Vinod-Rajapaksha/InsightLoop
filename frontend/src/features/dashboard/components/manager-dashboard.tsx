@@ -1,7 +1,7 @@
 import React from 'react';
 import { useManagerDashboard } from '@/features/dashboard/hooks/use-dashboard';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { ShieldAlert, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 import { ReportStatus } from '@/types';
 import { AIDashboardWidget } from '@/features/ai/components/AIDashboardWidget';
@@ -13,6 +13,16 @@ const STATUS_COLORS: Record<string, string> = {
   [ReportStatus.APPROVED]: '#22c55e',
 };
 
+const formatStatusLabel = (status: string) => {
+  switch (status) {
+    case ReportStatus.DRAFT: return 'Draft';
+    case ReportStatus.SUBMITTED: return 'Submitted';
+    case ReportStatus.NEEDS_CORRECTION: return 'Needs Correction';
+    case ReportStatus.APPROVED: return 'Approved';
+    default: return status;
+  }
+};
+
 export const ManagerDashboardComponent: React.FC = () => {
   const { data, isLoading } = useManagerDashboard();
 
@@ -20,9 +30,10 @@ export const ManagerDashboardComponent: React.FC = () => {
     return <div className="p-8 text-center text-muted-foreground">Loading dashboard...</div>;
   }
 
-  const statusData = data?.statusSummary || [];
-  const projectData = data?.projectWorkload || [];
-  const blockedTasks = data?.blockedTasks || [];
+  const dashboardData = data?.dashboard ?? data;
+  const statusData = dashboardData?.statusSummary || [];
+  const projectData = dashboardData?.projectWorkload || [];
+  const blockedTasks = dashboardData?.blockedTasks || [];
 
   const totalReports = statusData.reduce((acc: number, item: any) => acc + item.count, 0);
   const needsCorrectionCount = statusData.find((s: any) => s.status === ReportStatus.NEEDS_CORRECTION)?.count || 0;
@@ -106,24 +117,33 @@ export const ManagerDashboardComponent: React.FC = () => {
             <CardTitle>Report Status Distribution</CardTitle>
             <CardDescription>Current state of all tracked reports</CardDescription>
           </CardHeader>
-          <CardContent className="h-80 flex flex-col items-center justify-center">
+          <CardContent className="h-80 flex flex-col items-center justify-center p-2">
             <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
+              <PieChart margin={{ top: 10, right: 20, bottom: 20, left: 20 }}>
                 <Pie
                   data={statusData}
                   dataKey="count"
                   nameKey="status"
                   cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
-                  label={({ status, count }: any) => `${status}: ${count}`}
+                  cy="45%"
+                  innerRadius={48}
+                  outerRadius={72}
+                  paddingAngle={3}
+                  label={({ status, count }: any) => `${formatStatusLabel(status)}: ${count}`}
+                  labelLine={{ strokeWidth: 1 }}
                 >
                   {statusData.map((entry: any, index: number) => (
-                    <Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.status] || '#ccc'} />
+                    <Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.status] || '#cbd5e1'} />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip formatter={(value: any, name: any) => [value, formatStatusLabel(name)]} />
+                <Legend 
+                  verticalAlign="bottom" 
+                  height={32}
+                  formatter={(value: any) => (
+                    <span className="text-xs font-semibold text-slate-700">{formatStatusLabel(value)}</span>
+                  )} 
+                />
               </PieChart>
             </ResponsiveContainer>
           </CardContent>
