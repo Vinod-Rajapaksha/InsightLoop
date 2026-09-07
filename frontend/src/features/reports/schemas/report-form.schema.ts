@@ -32,6 +32,14 @@ export const reportFormSchema = z.object({
   achievements: z.array(achievementSchema),
   hoursByTaskType: z.record(z.string(), z.coerce.number().min(0)).optional(),
   notes: z.string().optional(),
+}).refine((data) => {
+  if (!data.weekStart || !data.weekEnd) return true;
+  const start = new Date(data.weekStart);
+  const end = new Date(data.weekEnd);
+  return end >= start;
+}, {
+  message: 'Week end date cannot be earlier than week start date',
+  path: ['weekEnd'],
 });
 
 export type ReportFormValues = z.infer<typeof reportFormSchema>;

@@ -17,4 +17,9 @@ export const usersApi = {
     const response = await apiClient.patch(`/users/${userId}/status`, { isActive });
     return response.data.data;
   },
+
+  updateProfile: async (data: { firstName?: string; lastName?: string; password?: string }): Promise<User> => {
+    const response = await apiClient.put('/users/profile', data);
+    return response.data.data?.user || response.data.data;
+  },
 };

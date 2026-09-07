@@ -9,7 +9,7 @@ import { AppLayout } from './layouts/AppLayout';
 // Auth Pages
 import { LoginPage } from './pages/auth/login-page';
 import { RegisterPage } from './pages/auth/register-page';
-import { RootRedirect } from './pages/RootRedirect';
+import { LandingPage } from './pages/LandingPage';
 
 // Error Pages
 import { Forbidden403 } from './pages/errors/Forbidden403';
@@ -45,7 +45,7 @@ export const App = () => {
             <Route path="/403" element={<Forbidden403 />} />
 
             {/* Authenticated Root */}
-            <Route path="/" element={<RootRedirect />} />
+            <Route path="/" element={<LandingPage />} />
 
             {/* Protected Routes Wrapper */}
             <Route element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
@@ -56,6 +56,7 @@ export const App = () => {
                 <Route path="/member/reports" element={<MemberReports />} />
                 <Route path="/member/reports/new" element={<MemberReportForm />} />
                 <Route path="/member/reports/:id/edit" element={<MemberReportForm />} />
+                <Route path="/member/projects" element={<ManagerProjects />} />
               </Route>
 
               {/* MANAGER/ADMIN Routes */}

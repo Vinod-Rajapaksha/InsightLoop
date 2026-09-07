@@ -4,12 +4,14 @@ import { Report, ReportVersion } from '@/types';
 export const reportsApi = {
   getMyReports: async (): Promise<Report[]> => {
     const { data } = await apiClient.get('/reports/my');
-    return data.data;
+    const result = data?.data ?? data;
+    return Array.isArray(result) ? result : [];
   },
   
   getAllReports: async (filters?: any): Promise<Report[]> => {
     const { data } = await apiClient.get('/reports', { params: filters });
-    return data.data;
+    const result = data?.data ?? data;
+    return Array.isArray(result) ? result : [];
   },
   
   getReport: async (id: string): Promise<Report> => {

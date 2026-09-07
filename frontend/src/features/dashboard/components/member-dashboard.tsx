@@ -13,9 +13,11 @@ export const MemberDashboardComponent: React.FC = () => {
   const { user } = useAuth();
   const { data: reports, isLoading } = useMyReports();
 
+  const reportsList = Array.isArray(reports) ? reports : [];
+
   // Assuming reports are sorted descending by weekStart or createdAt
-  const latestReport = reports?.[0];
-  const needsCorrection = reports?.filter(r => r.currentStatus === ReportStatus.NEEDS_CORRECTION) || [];
+  const latestReport = reportsList[0];
+  const needsCorrection = reportsList.filter(r => r.currentStatus === ReportStatus.NEEDS_CORRECTION);
 
   return (
     <div className="space-y-6">
@@ -33,7 +35,7 @@ export const MemberDashboardComponent: React.FC = () => {
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{reports?.length || 0}</div>
+            <div className="text-2xl font-bold">{reportsList.length}</div>
           </CardContent>
         </Card>
         

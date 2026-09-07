@@ -4,7 +4,8 @@ import { Project } from '@/types';
 export const projectsApi = {
   getProjects: async (): Promise<Project[]> => {
     const { data } = await apiClient.get('/projects');
-    return data.data;
+    const result = data?.data ?? data;
+    return Array.isArray(result) ? result : [];
   },
   createProject: async (projectData: Partial<Project>): Promise<Project> => {
     const { data } = await apiClient.post('/projects', projectData);
