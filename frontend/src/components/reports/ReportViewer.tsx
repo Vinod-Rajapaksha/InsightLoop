@@ -13,8 +13,8 @@ interface ReportViewerProps {
 export const ReportViewer: React.FC<ReportViewerProps> = ({ report }) => {
   const totalPlannedHours = report.tasksCompleted.reduce((acc, t) => acc + (t.plannedHours || 0), 0);
   const totalSpentHours = report.tasksCompleted.reduce((acc, t) => acc + (t.spentHours || 0), 0);
-  const ownerName = typeof report.owner === 'object' ? `${report.owner.firstName} ${report.owner.lastName}` : 'Unknown';
-  const projectName = typeof report.project === 'object' ? report.project.name : 'Unknown';
+  const ownerName = typeof report.owner === 'object' && report.owner ? `${report.owner.firstName} ${report.owner.lastName}` : 'Unknown';
+  const projectName = typeof report.project === 'object' && report.project ? report.project.name : 'Unknown';
 
   return (
     <div className="space-y-6">

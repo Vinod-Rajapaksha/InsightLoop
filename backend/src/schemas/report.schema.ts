@@ -4,11 +4,11 @@ import { TaskPriority, TaskStatus } from "../models/Report";
 const taskSchema = z.object({
   taskName: z.string().min(1, "Task name is required"),
   priority: z.nativeEnum(TaskPriority).optional(),
-  plannedPercentage: z.number().min(0).max(100),
-  actualPercentage: z.number().min(0).max(100),
+  plannedPercentage: z.coerce.number().min(0).max(100),
+  actualPercentage: z.coerce.number().min(0).max(100),
   status: z.nativeEnum(TaskStatus).optional(),
-  plannedHours: z.number().min(0),
-  spentHours: z.number().min(0),
+  plannedHours: z.coerce.number().min(0),
+  spentHours: z.coerce.number().min(0),
   deliverable: z.string().optional(),
 });
 
@@ -30,7 +30,7 @@ const reportBodySchema = z.object({
   nextWeekTasks: z.array(taskSchema),
   blockers: z.array(blockerSchema),
   achievements: z.array(achievementSchema),
-  hoursByTaskType: z.record(z.string(), z.number()).optional(),
+  hoursByTaskType: z.record(z.string(), z.coerce.number()).optional(),
   notes: z.string().optional(),
 });
 
