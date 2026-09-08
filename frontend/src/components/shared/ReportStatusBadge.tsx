@@ -35,7 +35,7 @@ export const ReportStatusBadge: React.FC<ReportStatusBadgeProps> = ({ status, cl
   const { label, colorClass } = config[status] || { label: status, colorClass: '' };
 
   return (
-    <Badge variant="outline" className={cn("font-medium", colorClass, className)}>
+    <Badge variant="outline" className={cn("font-medium whitespace-nowrap shrink-0", colorClass, className)}>
       {label}
     </Badge>
   );

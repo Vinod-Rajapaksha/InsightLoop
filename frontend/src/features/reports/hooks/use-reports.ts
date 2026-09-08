@@ -79,8 +79,8 @@ export const useApproveReport = () => {
 export const useRequestChanges = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, comments }: { id: string; comments: string }) => 
-      reportsApi.requestChanges(id, comments),
+    mutationFn: ({ id, comment }: { id: string; comment: string }) => 
+      reportsApi.requestChanges(id, comment),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ["reports", id] });
       queryClient.invalidateQueries({ queryKey: ["reports", "all"] });

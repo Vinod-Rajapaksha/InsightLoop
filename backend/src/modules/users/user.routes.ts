@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { userController } from './user.controller';
-import { requireAuth } from '../../middleware/auth';
+import { requireAuth, requireManager, requireAdmin } from '../../middleware/auth';
 
 const router = Router();
 
@@ -57,7 +57,7 @@ router.put('/profile', requireAuth, userController.updateProfile.bind(userContro
  *                   items:
  *                     $ref: '#/components/schemas/User'
  */
-router.get('/', requireAuth, userController.getAllUsers.bind(userController));
+router.get('/', requireAuth, requireManager, userController.getAllUsers.bind(userController));
 
 /**
  * @swagger
@@ -90,7 +90,7 @@ router.get('/', requireAuth, userController.getAllUsers.bind(userController));
  *       200:
  *         description: User role updated successfully
  */
-router.patch('/:userId/role', requireAuth, userController.updateRole.bind(userController));
+router.patch('/:userId/role', requireAuth, requireAdmin, userController.updateRole.bind(userController));
 
 /**
  * @swagger
@@ -122,6 +122,6 @@ router.patch('/:userId/role', requireAuth, userController.updateRole.bind(userCo
  *       200:
  *         description: User status updated successfully
  */
-router.patch('/:userId/status', requireAuth, userController.updateStatus.bind(userController));
+router.patch('/:userId/status', requireAuth, requireAdmin, userController.updateStatus.bind(userController));
 
 export const userRoutes = router;

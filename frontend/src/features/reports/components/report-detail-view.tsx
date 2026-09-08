@@ -62,9 +62,9 @@ export const ReportDetailView: React.FC = () => {
                 <div className="space-y-4">
                   {/* Current Version */}
                   <div className="p-3 border-l-2 border-primary bg-primary/5 rounded-r">
-                    <div className="flex justify-between items-center mb-1">
+                    <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
                       <span className="text-sm font-semibold text-primary">v{report.currentVersion} (Current)</span>
-                      <ReportStatusBadge status={report.currentStatus} className="text-[10px] h-5 py-0 px-1.5" />
+                      <ReportStatusBadge status={report.currentStatus} className="text-[10px] h-auto py-0.5 px-2" />
                     </div>
                     <div className="text-xs text-muted-foreground">
                       Updated {formatDateTime(report.updatedAt)}
@@ -72,11 +72,11 @@ export const ReportDetailView: React.FC = () => {
                   </div>
                   
                   {/* Previous Versions */}
-                  {versions.sort((a,b) => b.version - a.version).map(v => (
-                    <div key={v._id} className="p-3 border-l-2 border-muted bg-slate-50 hover:bg-slate-100 transition-colors rounded-r cursor-pointer" onClick={() => setSelectedVersionData(v.data)}>
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-sm font-medium">v{v.version}</span>
-                        <ReportStatusBadge status={v.statusAtSubmission} className="text-[10px] h-5 py-0 px-1.5" />
+                  {versions.sort((a,b) => (b.versionNumber || b.version || 0) - (a.versionNumber || a.version || 0)).map(v => (
+                    <div key={v._id} className="p-3 border-l-2 border-muted bg-slate-50 hover:bg-slate-100 transition-colors rounded-r cursor-pointer" onClick={() => setSelectedVersionData(v.snapshot || v.data)}>
+                      <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+                        <span className="text-sm font-medium">v{v.versionNumber || v.version}</span>
+                        <ReportStatusBadge status={v.statusAtSubmission} className="text-[10px] h-auto py-0.5 px-2" />
                       </div>
                       <div className="text-xs text-muted-foreground mb-2">
                         Submitted {formatDateTime(v.submittedAt)}
@@ -97,11 +97,11 @@ export const ReportDetailView: React.FC = () => {
           <DialogHeader className="px-6 py-4 border-b">
             <DialogTitle>Historical Version View</DialogTitle>
           </DialogHeader>
-          <ScrollArea className="flex-1 p-6">
+          <div className="flex-1 overflow-y-auto p-6">
             {selectedVersionData && (
               <ReportViewer report={{ ...report, ...selectedVersionData }} />
             )}
-          </ScrollArea>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

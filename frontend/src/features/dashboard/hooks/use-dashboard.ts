@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { dashboardApi } from '../api/dashboard.api';
+import { dashboardApi, DashboardFilters } from '../api/dashboard.api';
 
-export const useManagerDashboard = (weekStartDate?: string) => {
+export const useManagerDashboard = (filters?: DashboardFilters) => {
   return useQuery({
-    queryKey: ["manager", "dashboard", weekStartDate],
-    queryFn: () => dashboardApi.getManagerDashboard(weekStartDate),
+    queryKey: ["manager", "dashboard", filters],
+    queryFn: () => dashboardApi.getManagerDashboard(filters),
   });
 };
