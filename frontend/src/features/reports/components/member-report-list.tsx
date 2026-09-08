@@ -25,7 +25,7 @@ export const MemberReportList: React.FC = () => {
   const [searchTerm, setSearchTerm] = React.useState('');
 
   const filteredReports = reports?.filter(report => {
-    const projName = typeof report.project === 'object' ? report.project.name : '';
+    const projName = typeof report.project === 'object' && report.project ? report.project.name : '';
     return projName.toLowerCase().includes(searchTerm.toLowerCase());
   }) || [];
 
@@ -105,7 +105,7 @@ export const MemberReportList: React.FC = () => {
                         {formatDate(report.weekStart)}
                       </TableCell>
                       <TableCell>
-                        {typeof report.project === 'object' ? report.project.name : 'Unknown'}
+                        {typeof report.project === 'object' && report.project ? report.project.name : 'Unknown'}
                       </TableCell>
                       <TableCell>
                         <ReportStatusBadge status={report.currentStatus} />

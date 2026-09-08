@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { ArrowLeft, CheckCircle2, MessageSquareWarning } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { ConfirmAlert } from '@/components/ui/confirm-alert';
 import {
   Dialog,
   DialogContent,
@@ -28,6 +29,7 @@ export const ManagerReportReviewComponent: React.FC = () => {
 
   const [comment, setComment] = useState('');
   const [isChangeDialogOpen, setIsChangeDialogOpen] = useState(false);
+  const [isApproveConfirmOpen, setIsApproveConfirmOpen] = useState(false);
 
   if (isLoading || !report) {
     return <div className="p-8 text-center">Loading report details...</div>;
@@ -35,15 +37,14 @@ export const ManagerReportReviewComponent: React.FC = () => {
 
   const isReviewable = report.currentStatus === ReportStatus.SUBMITTED;
 
-  const handleApprove = async () => {
-    if (confirm('Are you sure you want to approve this report?')) {
-      try {
-        await approveMutation.mutateAsync(id as string);
-        toast.success('Report approved successfully');
-        navigate('/manager/reports');
-      } catch (error) {
-        toast.error('Failed to approve report');
-      }
+  const handleApproveConfirm = async () => {
+    try {
+      await approveMutation.mutateAsync(id as string);
+      toast.success('Report approved successfully');
+      setIsApproveConfirmOpen(false);
+      navigate('/manager/reports');
+    } catch (error) {
+      toast.error('Failed to approve report');
     }
   };
 
@@ -110,15 +111,25 @@ export const ManagerReportReviewComponent: React.FC = () => {
               </DialogContent>
             </Dialog>
 
-            <Button onClick={handleApprove} className="bg-green-600 hover:bg-green-700 text-white" disabled={approveMutation.isPending}>
+            <Button onClick={() => setIsApproveConfirmOpen(true)} className="bg-green-600 hover:bg-green-700 text-white" disabled={approveMutation.isPending}>
               <CheckCircle2 className="h-4 w-4 mr-2" />
-              {approveMutation.isPending ? 'Approving...' : 'Approve Report'}
+              Approve Report
             </Button>
           </div>
         )}
       </div>
 
       <ReportViewer report={report} />
+
+      <ConfirmAlert
+        open={isApproveConfirmOpen}
+        onOpenChange={setIsApproveConfirmOpen}
+        title="Approve Weekly Report"
+        description="Are you sure you want to approve this weekly report? Once approved, the status will be finalized."
+        confirmText="Approve"
+        onConfirm={handleApproveConfirm}
+        isLoading={approveMutation.isPending}
+      />
     </div>
   );
 };
