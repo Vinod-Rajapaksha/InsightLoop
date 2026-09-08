@@ -17,10 +17,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { TablePagination } from '@/components/shared/TablePagination';
 
 export const ManagerReportList: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [searchTerm, setSearchTerm] = useState('');
+  const itemsPerPage = 10;
+  const [currentPage, setCurrentPage] = useState(1);
   
   // Use TanStack query to fetch all reports
   const { data: reports, isLoading } = useAllReports();
@@ -31,6 +34,13 @@ export const ManagerReportList: React.FC = () => {
     const matchesStatus = statusFilter === 'ALL' || report.currentStatus === statusFilter;
     return matchesSearch && matchesStatus;
   }) || [];
+
+  const totalPages = Math.ceil(filteredReports.length / itemsPerPage) || 1;
+  const paginatedReports = filteredReports.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter]);
 
   return (
     <div className="space-y-6">
@@ -100,7 +110,7 @@ export const ManagerReportList: React.FC = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredReports.map((report) => (
+                  paginatedReports.map((report) => (
                     <TableRow key={report._id}>
                       <TableCell className="font-medium">
                         {typeof report.owner === 'object' ? `${report.owner.firstName} ${report.owner.lastName}` : 'Unknown'}
@@ -130,6 +140,15 @@ export const ManagerReportList: React.FC = () => {
               </TableBody>
             </Table>
           </div>
+
+          {/* Pagination Controls */}
+          <TablePagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredReports.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+          />
         </CardContent>
       </Card>
     </div>
