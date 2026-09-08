@@ -38,7 +38,11 @@ export class ProjectController {
 
   async update(req: Request, res: Response, next: NextFunction) {
     try {
-      const project = await projectRepository.update(req.params.id as string, req.body);
+      const updateData = { ...req.body };
+      if (updateData.status) {
+        updateData.isActive = updateData.status !== 'ARCHIVED';
+      }
+      const project = await projectRepository.update(req.params.id as string, updateData);
       if (!project) throw new AppError('Project not found', 404);
       res.status(200).json(successResponse('Project updated', { project }));
     } catch (error) {

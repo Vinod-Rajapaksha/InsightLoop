@@ -117,7 +117,7 @@ export const ManagerReportList: React.FC = () => {
                       </TableCell>
                       <TableCell>{formatDate(report.weekStart)}</TableCell>
                       <TableCell>
-                        {typeof report.project === 'object' ? report.project.name : 'Unknown'}
+                        {typeof report.project === 'object' && report.project ? report.project.name : 'Unknown'}
                       </TableCell>
                       <TableCell>
                         <ReportStatusBadge status={report.currentStatus} />
