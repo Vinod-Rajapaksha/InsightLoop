@@ -17,6 +17,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { ConfirmAlert } from '@/components/ui/confirm-alert';
 import { Plus, Trash2, ArrowLeft, Save, Send, Calendar } from 'lucide-react';
 
 export const ReportForm: React.FC = () => {
@@ -32,6 +33,7 @@ export const ReportForm: React.FC = () => {
   const submitMutation = useSubmitReport();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isConfirmOpen, setConfirmOpen] = useState(false);
 
   // Initialize form
   const form = useForm<any>({
@@ -59,13 +61,17 @@ export const ReportForm: React.FC = () => {
   const watchedWeekStart = form.watch('weekStart');
   const watchedWeekEnd = form.watch('weekEnd');
 
+  const [isInitialized, setIsInitialized] = useState(false);
+
   // Populate form if editing
   useEffect(() => {
-    if (isEditing && report) {
+    if (isEditing && report && !projectsLoading && projects && !isInitialized) {
       form.reset({
         weekStart: report.weekStart.split('T')[0],
         weekEnd: report.weekEnd.split('T')[0],
-        project: typeof report.project === 'string' ? report.project : report.project._id,
+        project: typeof report.project === 'string' 
+          ? report.project 
+          : ((report.project as any)?._id || (report.project as any)?.id || ''),
         tasksCompleted: report.tasksCompleted as any,
         nextWeekTasks: report.nextWeekTasks as any,
         blockers: report.blockers as any,
@@ -75,8 +81,10 @@ export const ReportForm: React.FC = () => {
         },
         notes: report.notes || '',
       });
+      // Small timeout to let form state settle before rendering UI
+      setTimeout(() => setIsInitialized(true), 10);
     }
-  }, [report, isEditing, form]);
+  }, [report, isEditing, form, projectsLoading, projects, isInitialized]);
 
   const { fields: taskFields, append: appendTask, remove: removeTask } = useFieldArray({ control: form.control, name: 'tasksCompleted' });
   const { fields: nextTaskFields, append: appendNextTask, remove: removeNextTask } = useFieldArray({ control: form.control, name: 'nextWeekTasks' });
@@ -103,25 +111,25 @@ export const ReportForm: React.FC = () => {
         toast.success('Draft created successfully');
         navigate(`/member/reports/${res._id}/edit`, { replace: true });
       }
-    } catch (error) {
-      toast.error('Failed to save draft');
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || error?.message || 'Failed to save draft');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleSubmitReport = async () => {
+  const handleSubmitClick = async () => {
     // We need to save first, then submit
     const isValid = await form.trigger();
     if (!isValid) {
       toast.error('Please fix the errors in the form before submitting');
       return;
     }
+    
+    setConfirmOpen(true);
+  };
 
-    if (!confirm('Submit this weekly report for manager review? Submitted reports cannot be edited unless requested.')) {
-      return;
-    }
-
+  const handleConfirmSubmit = async () => {
     setIsSubmitting(true);
     try {
       let currentId = id;
@@ -137,16 +145,18 @@ export const ReportForm: React.FC = () => {
       if (currentId) {
         await submitMutation.mutateAsync(currentId);
         toast.success('Report submitted successfully');
+        setConfirmOpen(false);
         navigate('/member/reports');
       }
-    } catch (error) {
-      toast.error('Failed to submit report');
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || error?.message || 'Failed to submit report');
     } finally {
       setIsSubmitting(false);
+      setConfirmOpen(false);
     }
   };
 
-  if (isEditing && reportLoading) {
+  if (isEditing && (!isInitialized || reportLoading || projectsLoading)) {
     return <div className="p-8 text-center">Loading report data...</div>;
   }
 
@@ -154,6 +164,25 @@ export const ReportForm: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-20">
+      {/* Correction Notice & Manager Feedback */}
+      {report?.currentStatus === ReportStatus.NEEDS_CORRECTION && (
+        <Card className="border-amber-200 bg-amber-50/80 shadow-sm">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-amber-900 flex items-center gap-2 text-base font-semibold">
+              <span className="text-lg">⚠️</span> Manager Review Feedback
+            </CardTitle>
+            <CardDescription className="text-amber-800 text-xs">
+              This report was returned for correction. Please address the feedback below before resubmitting.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="p-3 bg-white/80 border border-amber-200/60 rounded-md text-amber-950 text-sm whitespace-pre-wrap font-medium">
+              {report.latestReviewComment || 'No specific comment provided by manager.'}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Form {...form}>
         <form className="space-y-8" onSubmit={(e) => e.preventDefault()}>
           
@@ -201,6 +230,10 @@ export const ReportForm: React.FC = () => {
               )} />
               <FormField control={form.control} name="project" render={({ field }) => {
                 const hasProjects = Array.isArray(projects) && projects.length > 0;
+                const [projectSearch, setProjectSearch] = useState('');
+                const filteredProjects = hasProjects 
+                  ? projects.filter(p => p.name.toLowerCase().includes(projectSearch.toLowerCase()))
+                  : [];
                 
                 return (
                   <FormItem>
@@ -208,7 +241,7 @@ export const ReportForm: React.FC = () => {
                     <Select 
                       disabled={isReadOnly || projectsLoading || !hasProjects} 
                       onValueChange={field.onChange} 
-                      value={field.value}
+                      value={field.value || ""}
                     >
                       <FormControl>
                         <SelectTrigger className="border-slate-200/90 focus:border-indigo-500 focus:ring-indigo-500/20 font-medium">
@@ -221,13 +254,28 @@ export const ReportForm: React.FC = () => {
                           } />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent className="max-h-64">
+                        {hasProjects && projects.length > 5 && (
+                          <div className="p-2 sticky top-0 bg-popover z-10 border-b">
+                            <Input
+                              placeholder="Search project..."
+                              value={projectSearch}
+                              onChange={(e) => setProjectSearch(e.target.value)}
+                              onKeyDown={(e) => e.stopPropagation()}
+                              className="h-8 text-xs"
+                            />
+                          </div>
+                        )}
                         {projectsLoading ? (
                           <SelectItem value="_loading" disabled>Loading projects...</SelectItem>
                         ) : hasProjects ? (
-                          projects.map(p => (
-                            <SelectItem key={p._id} value={p._id}>{p.name}</SelectItem>
-                          ))
+                          filteredProjects.length > 0 ? (
+                            filteredProjects.map(p => (
+                              <SelectItem key={p._id} value={p._id}>{p.name}</SelectItem>
+                            ))
+                          ) : (
+                            <div className="py-2 px-3 text-xs text-muted-foreground text-center">No projects match search</div>
+                          )
                         ) : (
                           <SelectItem value="_empty" disabled>No active projects found</SelectItem>
                         )}
@@ -392,7 +440,7 @@ export const ReportForm: React.FC = () => {
                 <Save className="h-4 w-4 mr-2" />
                 {report?.currentStatus === ReportStatus.NEEDS_CORRECTION ? 'Save Changes' : 'Save Draft'}
               </Button>
-              <Button type="button" onClick={handleSubmitReport} disabled={isSubmitting}>
+              <Button type="button" onClick={handleSubmitClick} disabled={isSubmitting}>
                 <Send className="h-4 w-4 mr-2" />
                 {report?.currentStatus === ReportStatus.NEEDS_CORRECTION ? 'Resubmit' : 'Submit for Review'}
               </Button>
@@ -400,6 +448,16 @@ export const ReportForm: React.FC = () => {
           )}
         </form>
       </Form>
+      
+      <ConfirmAlert
+        open={isConfirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="Submit Report"
+        description="Submit this weekly report for manager review? Submitted reports cannot be edited unless requested."
+        confirmText="Submit"
+        onConfirm={handleConfirmSubmit}
+        isLoading={isSubmitting}
+      />
     </div>
   );
 };

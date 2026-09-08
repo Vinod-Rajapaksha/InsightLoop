@@ -53,7 +53,7 @@ export const ManagerReportReviewComponent: React.FC = () => {
       return;
     }
     try {
-      await requestChangesMutation.mutateAsync({ id: id as string, comments: comment });
+      await requestChangesMutation.mutateAsync({ id: id as string, comment });
       toast.success('Changes requested successfully');
       setIsChangeDialogOpen(false);
       navigate('/manager/reports');

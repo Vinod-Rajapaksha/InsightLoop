@@ -29,7 +29,7 @@ export class ReportWorkflowService {
     const report = await reportRepository.findById(reportId);
     if (!report) throw new AppError('Report not found', 404);
 
-    if (report.owner.toString() !== userId) {
+    if (report.owner._id.toString() !== userId && report.owner.toString() !== userId) {
       throw new AppError('Not authorized to edit this report', 403);
     }
 
@@ -44,7 +44,7 @@ export class ReportWorkflowService {
     const report = await reportRepository.findById(reportId);
     if (!report) throw new AppError('Report not found', 404);
 
-    if (report.owner.toString() !== userId) {
+    if (report.owner._id.toString() !== userId && report.owner.toString() !== userId) {
       throw new AppError('Not authorized to submit this report', 403);
     }
 
@@ -52,18 +52,18 @@ export class ReportWorkflowService {
       throw new AppError('Invalid status transition', 400);
     }
 
-    // Create a snapshot version
-    const version = await reportVersionRepository.create({
-      reportId: report._id as any,
-      versionNumber: report.currentVersion,
-      snapshot: report.toObject(),
-      submittedBy: userId as any,
-      statusAtSubmission: report.currentStatus,
-    });
-
     const newVersion = report.currentStatus === ReportStatus.NEEDS_CORRECTION 
       ? report.currentVersion + 1 
       : report.currentVersion;
+
+    // Create a snapshot version
+    const version = await reportVersionRepository.create({
+      reportId: report._id as any,
+      versionNumber: newVersion,
+      snapshot: report.toObject(),
+      submittedBy: userId as any,
+      statusAtSubmission: ReportStatus.SUBMITTED,
+    });
 
     return await reportRepository.update(reportId, {
       currentStatus: ReportStatus.SUBMITTED,

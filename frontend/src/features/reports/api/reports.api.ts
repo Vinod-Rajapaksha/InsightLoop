@@ -55,8 +55,8 @@ export const reportsApi = {
     return data?.data?.report ?? data?.data ?? data;
   },
   
-  requestChanges: async (id: string, comments: string): Promise<Report> => {
-    const { data } = await apiClient.post(`/reports/${id}/request-correction`, { comments });
+  requestChanges: async (id: string, comment: string): Promise<Report> => {
+    const { data } = await apiClient.post(`/reports/${id}/request-correction`, { comment });
     return data?.data?.report ?? data?.data ?? data;
   }
 };

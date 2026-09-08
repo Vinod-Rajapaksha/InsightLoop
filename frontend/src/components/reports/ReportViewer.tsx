@@ -39,6 +39,20 @@ export const ReportViewer: React.FC<ReportViewerProps> = ({ report }) => {
         </CardContent>
       </Card>
 
+      {report.latestReviewComment && report.currentStatus === 'NEEDS_CORRECTION' && (
+        <Card className="border-orange-200 bg-orange-50">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-orange-800 flex items-center gap-2 text-lg">
+              <AlertCircle className="h-5 w-5" />
+              Manager Feedback (Action Required)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-orange-900 whitespace-pre-wrap text-sm">{report.latestReviewComment}</p>
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle>Tasks Completed</CardTitle>

@@ -15,13 +15,20 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Search } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { formatDate } from '@/utils';
+import { TablePagination } from '@/components/shared/TablePagination';
 
 export const UserManagement: React.FC = () => {
   const { data: users, isLoading } = useUsers();
   const { mutate: updateRole } = useUpdateUserRole();
   const { mutate: updateStatus } = useUpdateUserStatus();
   const { user: currentUser } = useAuth();
+
+  const [searchTerm, setSearchTerm] = React.useState('');
+  const itemsPerPage = 10;
+  const [currentPage, setCurrentPage] = React.useState(1);
 
   const isAdminAccount = (userRole: string) => userRole === Role.ADMIN;
   const isSelf = (userId: string) => currentUser?._id === userId;
@@ -34,6 +41,20 @@ export const UserManagement: React.FC = () => {
     updateStatus({ userId, isActive });
   };
 
+  const filteredUsers = users?.filter(user => {
+    const fullName = `${user.firstName} ${user.lastName}`.toLowerCase();
+    const email = user.email.toLowerCase();
+    const query = searchTerm.toLowerCase();
+    return fullName.includes(query) || email.includes(query);
+  }) || [];
+
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage) || 1;
+  const paginatedUsers = filteredUsers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
   return (
     <div className="space-y-6">
       <div>
@@ -42,9 +63,23 @@ export const UserManagement: React.FC = () => {
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>All Users</CardTitle>
-          <CardDescription>A complete list of registered users in the platform.</CardDescription>
+        <CardHeader className="pb-3">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <CardTitle>All Users</CardTitle>
+              <CardDescription>A complete list of registered users in the platform.</CardDescription>
+            </div>
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search users..."
+                className="pl-8"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="rounded-md border">
@@ -69,14 +104,14 @@ export const UserManagement: React.FC = () => {
                       <TableCell><Skeleton className="h-5 w-24" /></TableCell>
                     </TableRow>
                   ))
-                ) : !users?.length ? (
+                ) : !filteredUsers.length ? (
                   <TableRow>
                     <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
                       No users found.
                     </TableCell>
                   </TableRow>
                 ) : (
-                  users.map((user) => {
+                  paginatedUsers.map((user) => {
                     const isAdmin = isAdminAccount(user.role);
                     const self = isSelf(user._id);
                     const roleDisabled = isAdmin || self;
@@ -136,6 +171,15 @@ export const UserManagement: React.FC = () => {
               </TableBody>
             </Table>
           </div>
+
+          {/* Pagination Controls */}
+          <TablePagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredUsers.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+          />
         </CardContent>
       </Card>
     </div>

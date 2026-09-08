@@ -16,15 +16,26 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { PlusCircle, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { TablePagination } from '@/components/shared/TablePagination';
 
 export const MemberReportList: React.FC = () => {
   const { data: reports, isLoading } = useMyReports();
+  const itemsPerPage = 10;
+  const [currentPage, setCurrentPage] = React.useState(1);
   const [searchTerm, setSearchTerm] = React.useState('');
 
   const filteredReports = reports?.filter(report => {
     const projName = typeof report.project === 'object' ? report.project.name : '';
     return projName.toLowerCase().includes(searchTerm.toLowerCase());
   }) || [];
+
+  const totalPages = Math.ceil(filteredReports.length / itemsPerPage) || 1;
+  const paginatedReports = filteredReports.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  // Reset page when search term changes
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   return (
     <div className="space-y-6">
@@ -88,7 +99,7 @@ export const MemberReportList: React.FC = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredReports.map((report) => (
+                  paginatedReports.map((report) => (
                     <TableRow key={report._id}>
                       <TableCell className="font-medium">
                         {formatDate(report.weekStart)}
@@ -117,6 +128,15 @@ export const MemberReportList: React.FC = () => {
               </TableBody>
             </Table>
           </div>
+
+          {/* Pagination Controls */}
+          <TablePagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredReports.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+          />
         </CardContent>
       </Card>
     </div>

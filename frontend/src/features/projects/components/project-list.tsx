@@ -11,6 +11,7 @@ import { PlusCircle, Search, Edit2, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDate } from '@/utils';
 import { Project } from '@/types';
+import { TablePagination } from '@/components/shared/TablePagination';
 
 export const ProjectList: React.FC = () => {
   const { data: projects, isLoading } = useProjects();
@@ -22,12 +23,21 @@ export const ProjectList: React.FC = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
-
   const [formData, setFormData] = useState({ name: '', description: '', status: 'ACTIVE' });
+
+  const itemsPerPage = 10;
+  const [currentPage, setCurrentPage] = useState(1);
 
   const filteredProjects = projects?.filter(p => 
     p.name.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
+
+  const totalPages = Math.ceil(filteredProjects.length / itemsPerPage) || 1;
+  const paginatedProjects = filteredProjects.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   const handleOpenDialog = (project?: Project) => {
     if (project) {
@@ -123,7 +133,7 @@ export const ProjectList: React.FC = () => {
                 ) : filteredProjects.length === 0 ? (
                   <TableRow><TableCell colSpan={5} className="text-center h-24">No projects found.</TableCell></TableRow>
                 ) : (
-                  filteredProjects.map((project) => (
+                  paginatedProjects.map((project) => (
                     <TableRow key={project._id}>
                       <TableCell className="font-medium">{project.name}</TableCell>
                       <TableCell className="max-w-xs truncate">{project.description}</TableCell>
@@ -177,6 +187,15 @@ export const ProjectList: React.FC = () => {
               </TableBody>
             </Table>
           </div>
+
+          {/* Pagination Controls */}
+          <TablePagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredProjects.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+          />
         </CardContent>
       </Card>
 

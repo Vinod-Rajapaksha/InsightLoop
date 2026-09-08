@@ -50,8 +50,10 @@ export interface Report {
 export interface ReportVersion {
   _id: string;
   reportId: string;
-  version: number;
-  data: Partial<Report>;
+  version?: number;
+  versionNumber?: number;
+  data?: Partial<Report>;
+  snapshot?: Partial<Report>;
   submittedBy: string;
   submittedAt: string;
   statusAtSubmission: ReportStatus;
